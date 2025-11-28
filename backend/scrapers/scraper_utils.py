@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from bs4 import BeautifulSoup
 from pydantic import ValidationError
-from backend.app.domain.schemas import Offer
 
 # --- HTTP ---
 DEFAULT_HEADERS = {
@@ -111,22 +110,40 @@ def now_utc_iso() -> str:
 
 def validate_with_offer(items: List[Dict], store_slug: str) -> Tuple[List[Dict], List[Dict]]:
     """
-    Validates each item against Offer. Expects keys:
-    - title, price_amount, price_currency, url, scraped_at
-    Returns (valid, rejected) with .model_dump() for valid items.
+    Very lightweight validation step for scraped items.
+    - Keeps items that have a valid title and numeric price_amount.
+    - Normalizes the structure to a common dict format.
+    - Returns (valid_items, rejected_items).
     """
-    validos, rechazados = [], []
+    valid = []
+    rejected = []
+
     for it in items:
-        data = {
-            "store_slug": store_slug,
-            "title": it.get("title", ""),
-            "current_price": it.get("price_amount", ""),
-            "currency": it.get("price_currency", "MXN"),
-            "url": it.get("url", ""),
-            "scraped_at": it.get("scraped_at", ""),
-        }
+        title = (it.get("title") or "").strip()
+        price_amount = it.get("price_amount")
+        price_currency = (it.get("price_currency") or "MXN").strip()
+        url = it.get("url")
+
+        # Basic sanity checks
+        if not title or price_amount is None or not url:
+            rejected.append({"item": it, "reason": "missing title/price/url"})
+            continue
+
         try:
-            validos.append(Offer(**data).model_dump())
-        except ValidationError as e:
-            rechazados.append({"item": it, "errors": e.errors()})
-    return validos, rechazados
+            current_price = float(price_amount)
+        except (TypeError, ValueError):
+            rejected.append({"item": it, "reason": "invalid numeric price"})
+            continue
+
+        valid.append(
+            {
+                "title": title,
+                "current_price": current_price,
+                "currency": price_currency or "MXN",
+                "url": url,
+                "store_slug": store_slug,
+            }
+        )
+
+    return valid, rejected
+

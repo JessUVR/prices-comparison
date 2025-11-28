@@ -26,7 +26,7 @@ class Offer(Base):
 
     id = Column(Integer, primary_key=True)
     title = Column(String)
-    price = Column(Float)
+    price = Column(Float, nullable=True)
     validity_text = Column(String)
     image_url = Column(String)
     store_id = Column(Integer, ForeignKey("stores.id"))

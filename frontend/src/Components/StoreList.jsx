@@ -3,33 +3,36 @@ import oxxoLogo from "../assets/logos/oxxo.png";
 import sorianaLogo from "../assets/logos/soriana.png";
 import sevenEleven from "../assets/logos/sevenEleven.png";
 
-const stores = [
-  { name: "OXXO", logo: oxxoLogo },
-  { name: "Soriana", logo: sorianaLogo },
-  { name: "7-Eleven", logo: sevenEleven },
+// StoreList.jsx
+const STORES = [
+  {
+    id: 1,
+    name: "OXXO",
+    slug: "oxxo", // 👈 clave para el backend
+    logo: "/img/oxxo.png",
+  },
+  {
+    id: 2,
+    name: "Soriana",
+    slug: "soriana", // 👈 ya la dejas lista aunque no funcione aún
+    logo: "/img/soriana.png",
+  },
+  // luego agregas más
 ];
 
-function StoreList() {
+export function StoreList({ selectedStore, onSelectStore }) {
   return (
-    <div className="pt-20 py-6 text-center bg-sky-100">
-      <h2 className="text-xl font-semibold text-gray-800 text-center mt-10 mb-2">
-        CERVEZAS DISPONIBLES 🍻
-      </h2>
-
-      <div className="bg-white rounded-xl shadow-sm p-4 max-w-3xl mx-auto flex flex-wrap justify-center gap-6">
-        {stores.map((store, index) => (
-          <div
-            key={index}
-            className="w-20 h-20 flex items-center justify-center"
-          >
-            <img
-              src={store.logo}
-              alt={store.name}
-              className="w-full h-full object-contain"
-            />
-          </div>
-        ))}
-      </div>
+    <div className="store-list">
+      {STORES.map((store) => (
+        <button
+          key={store.id}
+          onClick={() => onSelectStore(store.slug)}
+          className={store.slug === selectedStore ? "active" : ""}
+        >
+          <img src={store.logo} alt={store.name} />
+          <span>{store.name}</span>
+        </button>
+      ))}
     </div>
   );
 }

@@ -5,13 +5,9 @@ from typing import Optional
 class OfferBase(BaseModel):
     store_id: int = Field(..., description="ID of the store (FK)")
     title: str = Field(..., description="Offer title or product name")
-    price: float = Field(..., description="Offer price")
-    validity_text: Optional[str] = Field(
-        None, description="Text describing validity dates"
-    )
-    image_url: Optional[str] = Field(
-        None, description="URL to the product or promotion image"
-    )
+    price: Optional[float] = Field(None, description="Offer price (if available)")
+    validity_text: Optional[str] = Field(None, description="Promo description")
+    image_url: Optional[str] = Field(None, description="Image URL")
 
 # 🔹 2. Create schema – used for data validation when creating a new record
 class OfferCreate(OfferBase):
