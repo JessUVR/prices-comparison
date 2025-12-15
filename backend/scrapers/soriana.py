@@ -1,4 +1,4 @@
-# backend/scrapers/soriana_promos.py
+# backend/scrapers/soriana.py
 
 from typing import List, Dict, Optional
 from urllib.parse import urljoin

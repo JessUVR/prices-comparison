@@ -2,7 +2,7 @@ from app.infra.db.database import SessionLocal
 from app.domain import models
 
 def get_or_create_store(db, name: str, url: str, logo_url: str = "") -> models.Store:
-    """Busca una tienda por nombre; si no existe, la crea."""
+    """Search for a store by name; if it doesn't exist, create it."""
     store = db.query(models.Store).filter(models.Store.name == name).first()
     if store:
         print(f"Store '{name}' already exists with id={store.id}")
@@ -21,7 +21,7 @@ def get_or_create_store(db, name: str, url: str, logo_url: str = "") -> models.S
 
 
 def seed_stores() -> None:
-    """Crea las tiendas base necesarias para el prototipo."""
+    """Creates the base stores necessary for the prototype."""
     db = SessionLocal()
     try:
         # OXXO
@@ -36,6 +36,13 @@ def seed_stores() -> None:
             db,
             name="Soriana",
             url="https://www.soriana.com",
+        )
+
+         # Merco
+        get_or_create_store(
+            db,
+            name="Merco",
+            url="https://adomicilio.merco.mx",
         )
     finally:
         db.close()

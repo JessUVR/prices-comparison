@@ -1,5 +1,5 @@
 from typing import Optional
-from . import models
+from . import models, schemas
 
 from sqlalchemy.orm import Session
 
@@ -18,11 +18,15 @@ def create_offer(db: Session, offer_in: OfferCreate) -> Offer:
         db.rollback()
         raise
 
+
 def get_offer(db: Session, offer_id: int) -> Optional[Offer]:
     return db.get(Offer, offer_id)
 
-def get_all_offers(db: Session) -> list[Offer]:
+
+def get_offers(db: Session) -> list[Offer]:
+    """Return all offers from the database."""
     return db.query(Offer).all()
+
 
 def get_offers_by_store(db: Session, store_id: int):
     return (
@@ -30,6 +34,7 @@ def get_offers_by_store(db: Session, store_id: int):
         .filter(models.Offer.store_id == store_id)
         .all()
     )
+
 
 def update_offer(db: Session, offer_id: int, offer_in: OfferUpdate) -> Optional[Offer]:
     db_offer = db.get(Offer, offer_id)
@@ -48,11 +53,11 @@ def update_offer(db: Session, offer_id: int, offer_in: OfferUpdate) -> Optional[
         db.rollback()
         raise
 
+
 def delete_offer(db: Session, offer_id: int) -> bool:
     db_offer = db.get(Offer, offer_id)
     if not db_offer:
         return False
-        
 
     try:
         db.delete(db_offer)
@@ -62,6 +67,14 @@ def delete_offer(db: Session, offer_id: int) -> bool:
         db.rollback()
         raise
 
+def delete_offers_by_store(db: Session, store_id: int) -> int:
+    deleted = (
+        db.query(models.Offer)
+        .filter(models.Offer.store_id == store_id)
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+    return deleted
 
 def delete_all_offers(db: Session) -> int:
     """Delete ALL offers from the table and return how many were deleted."""

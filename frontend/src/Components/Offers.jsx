@@ -1,54 +1,70 @@
+// Components/Offers.jsx
 import React from "react";
 import OfferGrid from "./OfferGrid";
 
-const mockData = {
-  OXXO: [
-    { title: "Tecate Light 6-pack", price: 89.99, discount: 15 },
-    { title: "Heineken 6-pack", price: 99.99, discount: 10 },
-    { title: "Coors Light 6-pack", price: 49.99, discount: 30 },
-    { title: "Modelo Especial 6-pack", price: 74.99, discount: 20 },
-    { title: "Indio 6-pack", price: 67.5, discount: 25 },
-    { title: "Corona Extra 6-pack", price: 82.99, discount: 18 },
-    { title: "Bud Light 6-pack", price: 84.9, discount: 15 },
-    { title: "Coors Light 6-pack", price: 79.9, discount: 20 },
-    { title: "Michelob Ultra 6-pack", price: 92.5, discount: 12 },
-  ],
-  Soriana: [
-    { title: "Modelo Especial 6-pack", price: 74.99, discount: 20 },
-    { title: "Indio 6-pack", price: 67.5, discount: 25 },
-    { title: "Corona Extra 6-pack", price: 82.99, discount: 18 },
-    { title: "Tecate Light 6-pack", price: 89.99, discount: 15 },
-    { title: "Heineken 6-pack", price: 99.99, discount: 10 },
-    { title: "Coors Light 6-pack", price: 49.99, discount: 30 },
-    { title: "Modelo Especial 6-pack", price: 74.99, discount: 20 },
-    { title: "Bud Light 6-pack", price: 84.9, discount: 15 },
-    { title: "Coors Light 6-pack", price: 79.9, discount: 20 },
-    { title: "Michelob Ultra 6-pack", price: 92.5, discount: 12 },
-  ],
-  "7-Eleven": [
-    { title: "Bud Light 6-pack", price: 84.9, discount: 15 },
-    { title: "Coors Light 6-pack", price: 79.9, discount: 20 },
-    { title: "Michelob Ultra 6-pack", price: 92.5, discount: 12 },
-    { title: "Modelo Especial 6-pack", price: 74.99, discount: 20 },
-    { title: "Indio 6-pack", price: 67.5, discount: 25 },
-    { title: "Corona Extra 6-pack", price: 82.99, discount: 18 },
-    { title: "Tecate Light 6-pack", price: 89.99, discount: 15 },
-    { title: "Heineken 6-pack", price: 99.99, discount: 10 },
-    { title: "Coors Light 6-pack", price: 49.99, discount: 30 },
-    { title: "Modelo Especial 6-pack", price: 74.99, discount: 20 },
-  ],
-};
+function Offers({ selectedStore, offers, loading, error }) {
+  const title = selectedStore ? `OFFERS – ${selectedStore.name}` : "OFFERS";
 
-function Offers({ store }) {
-  const offers = mockData[store];
-
-  console.log("Selected:", store);
-  console.log("Offers:", offers);
+  const isComingSoon = selectedStore?.comingSoon;
 
   return (
-    <div className="px-4 pb-20">
-      <OfferGrid offers={offers} />
-    </div>
+    <section className="offers-section">
+      {/* Section Title */}
+      <h2 className="offers-title">{title}</h2>
+
+      {/* No store selected */}
+      {!selectedStore && (
+        <p className="text-slate-400 text-sm mt-4">
+          Select a store to view offers.
+        </p>
+      )}
+
+      {/* Store marked as "coming soon" */}
+      {selectedStore && isComingSoon && (
+        <p className="text-slate-400 text-sm mt-4">
+          Offers for{" "}
+          <span className="font-semibold">{selectedStore.name}</span> will be
+          available soon 🚧
+        </p>
+      )}
+
+      {/* Loading */}
+      {selectedStore && !isComingSoon && loading && (
+        <div className="flex flex-col items-center justify-center mt-6 mb-6">
+          <div className="loader"></div>
+          <p className="text-slate-400 text-xs mt-3 tracking-wide">
+            Loading offers for{" "}
+            <span className="text-slate-200">{selectedStore.name}</span>…
+          </p>
+        </div>
+      )}
+
+      {/* Error */}
+      {selectedStore && !isComingSoon && !loading && error && (
+        <p className="text-red-400 text-sm mt-4">
+          There was a problem loading offers. Please try again later.
+        </p>
+      )}
+
+      {/* No offers */}
+      {selectedStore &&
+        !isComingSoon &&
+        !loading &&
+        !error &&
+        (!offers || offers.length === 0) && (
+          <p className="text-slate-400 text-sm mt-4">
+            We found no active offers for this store at the moment.
+          </p>
+        )}
+
+      {/* Offers Grid */}
+      {selectedStore &&
+        !isComingSoon &&
+        !loading &&
+        !error &&
+        offers &&
+        offers.length > 0 && <OfferGrid offers={offers} />}
+    </section>
   );
 }
 

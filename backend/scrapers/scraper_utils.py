@@ -7,6 +7,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from bs4 import BeautifulSoup
 from pydantic import ValidationError
 
+
 # --- HTTP ---
 DEFAULT_HEADERS = {
     "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -108,15 +109,19 @@ def now_utc_iso() -> str:
     """ISO8601 timestamp in UTC with Z suffix (no microseconds)."""
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
+from typing import List, Dict, Tuple
+
 def validate_with_offer(items: List[Dict], store_slug: str) -> Tuple[List[Dict], List[Dict]]:
     """
     Very lightweight validation step for scraped items.
     - Keeps items that have a valid title and numeric price_amount.
     - Normalizes the structure to a common dict format.
     - Returns (valid_items, rejected_items).
+
+    NOTE: Preserves extra fields like image_url, scraped_at, product_url if present.
     """
-    valid = []
-    rejected = []
+    valid: List[Dict] = []
+    rejected: List[Dict] = []
 
     for it in items:
         title = (it.get("title") or "").strip()
@@ -135,15 +140,26 @@ def validate_with_offer(items: List[Dict], store_slug: str) -> Tuple[List[Dict],
             rejected.append({"item": it, "reason": "invalid numeric price"})
             continue
 
-        valid.append(
-            {
-                "title": title,
-                "current_price": current_price,
-                "currency": price_currency or "MXN",
-                "url": url,
-                "store_slug": store_slug,
-            }
-        )
+        # Base payload normalized
+        payload: Dict = {
+            "title": title,
+            "current_price": current_price,
+            "currency": price_currency or "MXN",
+            "url": url,
+            "store_slug": store_slug,
+        }
+
+        # 👇 PRESERVE EXTRA FIELDS IF THEY EXIST
+        if "image_url" in it:
+            payload["image_url"] = it.get("image_url")
+
+        if "scraped_at" in it:
+            payload["scraped_at"] = it.get("scraped_at")
+
+        if "product_url" in it:
+            payload["product_url"] = it.get("product_url")
+
+        valid.append(payload)
 
     return valid, rejected
 

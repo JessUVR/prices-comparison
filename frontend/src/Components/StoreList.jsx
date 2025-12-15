@@ -1,38 +1,39 @@
+// StoreList.jsx
 import React from "react";
 import oxxoLogo from "../assets/logos/oxxo.png";
 import sorianaLogo from "../assets/logos/soriana.png";
-import sevenEleven from "../assets/logos/sevenEleven.png";
+import sevenElevenLogo from "../assets/logos/sevenEleven.png";
 
-// StoreList.jsx
 const STORES = [
-  {
-    id: 1,
-    name: "OXXO",
-    slug: "oxxo", // 👈 clave para el backend
-    logo: "/img/oxxo.png",
-  },
-  {
-    id: 2,
-    name: "Soriana",
-    slug: "soriana", // 👈 ya la dejas lista aunque no funcione aún
-    logo: "/img/soriana.png",
-  },
-  // luego agregas más
+  { id: 1, slug: "oxxo", name: "OXXO", comingSoon: false },
+  { id: 2, slug: "soriana", name: "Soriana", comingSoon: true },
+  { id: 3, slug: "7eleven", name: "7-Eleven", comingSoon: true },
+  { id: 4, slug: "merco", name: "Merco", comingSoon: false },
 ];
 
-export function StoreList({ selectedStore, onSelectStore }) {
+function StoreList({ selectedStore, onSelectStore }) {
   return (
     <div className="store-list">
-      {STORES.map((store) => (
-        <button
-          key={store.id}
-          onClick={() => onSelectStore(store.slug)}
-          className={store.slug === selectedStore ? "active" : ""}
-        >
-          <img src={store.logo} alt={store.name} />
-          <span>{store.name}</span>
-        </button>
-      ))}
+      {STORES.map((store) => {
+        const isActive = selectedStore?.slug === store.slug;
+
+        return (
+          <button
+            key={store.id}
+            onClick={() => {
+              if (isActive) return; // ⛔ avoids reloading the same store
+              onSelectStore(store);
+
+              // 🔄 Reset scroll to top
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`store-item ${isActive ? "store-item--active" : ""}`}
+          >
+            {store.name}
+            {store.comingSoon && " (coming soon)"}
+          </button>
+        );
+      })}
     </div>
   );
 }

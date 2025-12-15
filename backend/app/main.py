@@ -11,6 +11,7 @@ app.include_router(offers_router)
 origins = [
     "http://localhost:5173",  # Vite
     "http://localhost:3000",  # React CRA
+    "http://192.168.1.142:5173",   # Vite Network on your machine
 ]
 
 app.add_middleware(
