@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from bs4 import BeautifulSoup
 from pydantic import ValidationError
-from backend.app.domain.schemas import Offer
+
 
 # --- HTTP ---
 DEFAULT_HEADERS = {
@@ -17,7 +17,7 @@ DEFAULT_HEADERS = {
 }
 
 def fetch_html(url: str, headers: Optional[Dict] = None, timeout: int = 20) -> str:
-    """GET simple con headers/timeout. Devuelve el HTML o cadena vacía si falla."""
+    """Simple GET with headers/timeout. Returns the HTML or an empty string if it fails."""
     try:
         r = requests.get(url, headers=headers or DEFAULT_HEADERS, timeout=timeout)
         r.raise_for_status()
@@ -25,20 +25,20 @@ def fetch_html(url: str, headers: Optional[Dict] = None, timeout: int = 20) -> s
     except requests.RequestException:
         return ""
 
-# --- Texto / Heurísticas ---
+# --- Text / Heuristics ---
 def text_of(el) -> str:
-    """Texto normalizado de un nodo BeautifulSoup (espacios colapsados)."""
+    """Normalized text from a BeautifulSoup node (collapsed whitespace)."""
     return "" if el is None else " ".join(el.get_text(" ", strip=True).split())
 
 def is_price_like(s: str) -> bool:
-    """Heurística muy ligera para detectar cadenas que parecen precio."""
+    """Very light heuristic to detect strings that look like a price."""
     if not s: return False
     t = s.replace(" ", "")
     return ("$" in t or "MXN" in t or "USD" in t or "€" in t) or any(c.isdigit() for c in t)
 
-# --- Normalización ---
+# --- Normalization ---
 def normalize_price(s: str) -> Optional[str]:
-    """Convierte una cadena con números a formato '1234.56' (string) o None."""
+    """Converts a string containing numbers into format '1234.56' (string) or None."""
     if not s: return None
     m = re.findall(r"\d[\d.,]*", s)
     if not m: return None
@@ -60,7 +60,7 @@ def normalize_price(s: str) -> Optional[str]:
         return None
 
 def normalize_currency(s: str, default: str = "MXN") -> str:
-    """Intenta deducir moneda a partir de la cadena; cae en default."""
+    """Attempts to deduce currency from the string; falls back to default."""
     u = (s or "").upper()
     if "USD" in u: return "USD"
     if "MXN" in u or "MX$" in u: return "MXN"
@@ -71,8 +71,8 @@ def normalize_currency(s: str, default: str = "MXN") -> str:
 # --- JSON-LD (PDP) ---
 def extract_product_from_pdp(html: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
-    Extrae (name, price, currency) del JSON-LD @type Product en una PDP.
-    Devuelve (None, None, None) si no lo encuentra.
+    Extracts (name, price, currency) from JSON-LD @type Product in a PDP.
+    Returns (None, None, None) if not found.
     """
     soup = BeautifulSoup(html, "html.parser")
     for tag in soup.find_all("script", type="application/ld+json"):
@@ -104,29 +104,62 @@ def extract_product_from_pdp(html: str) -> Tuple[Optional[str], Optional[str], O
                 stack.extend(node)
     return None, None, None
 
-# --- Varios ---
+# --- Misc ---
 def now_utc_iso() -> str:
-    """Timestamp ISO8601 en UTC con sufijo Z (sin microsegundos)."""
+    """ISO8601 timestamp in UTC with Z suffix (no microseconds)."""
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+from typing import List, Dict, Tuple
 
 def validate_with_offer(items: List[Dict], store_slug: str) -> Tuple[List[Dict], List[Dict]]:
     """
-    Valida cada item contra Offer. Espera claves:
-    - title, price_amount, price_currency, url, scraped_at
-    Retorna (validos, rechazados) con .model_dump() para los válidos.
+    Very lightweight validation step for scraped items.
+    - Keeps items that have a valid title and numeric price_amount.
+    - Normalizes the structure to a common dict format.
+    - Returns (valid_items, rejected_items).
+
+    NOTE: Preserves extra fields like image_url, scraped_at, product_url if present.
     """
-    validos, rechazados = [], []
+    valid: List[Dict] = []
+    rejected: List[Dict] = []
+
     for it in items:
-        data = {
-            "store_slug": store_slug,
-            "title": it.get("title", ""),
-            "current_price": it.get("price_amount", ""),
-            "currency": it.get("price_currency", "MXN"),
-            "url": it.get("url", ""),
-            "scraped_at": it.get("scraped_at", ""),
-        }
+        title = (it.get("title") or "").strip()
+        price_amount = it.get("price_amount")
+        price_currency = (it.get("price_currency") or "MXN").strip()
+        url = it.get("url")
+
+        # Basic sanity checks
+        if not title or price_amount is None or not url:
+            rejected.append({"item": it, "reason": "missing title/price/url"})
+            continue
+
         try:
-            validos.append(Offer(**data).model_dump())
-        except ValidationError as e:
-            rechazados.append({"item": it, "errors": e.errors()})
-    return validos, rechazados
+            current_price = float(price_amount)
+        except (TypeError, ValueError):
+            rejected.append({"item": it, "reason": "invalid numeric price"})
+            continue
+
+        # Base payload normalized
+        payload: Dict = {
+            "title": title,
+            "current_price": current_price,
+            "currency": price_currency or "MXN",
+            "url": url,
+            "store_slug": store_slug,
+        }
+
+        # 👇 PRESERVE EXTRA FIELDS IF THEY EXIST
+        if "image_url" in it:
+            payload["image_url"] = it.get("image_url")
+
+        if "scraped_at" in it:
+            payload["scraped_at"] = it.get("scraped_at")
+
+        if "product_url" in it:
+            payload["product_url"] = it.get("product_url")
+
+        valid.append(payload)
+
+    return valid, rejected
+

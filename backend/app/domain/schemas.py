@@ -1,70 +1,28 @@
-from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator, ConfigDict
-from typing import Literal
-from datetime import datetime, timezone
-from decimal import Decimal
-import re
+from pydantic import BaseModel, Field
+from typing import Optional
 
-class Offer(BaseModel):
-    model_config = ConfigDict(
-        extra='forbid',          # reject unknown fields
-        validate_assignment=True # re-validate on attribute set
-    )
+# 🔹 1. Base schema – defines the common structure shared by all variants
+class OfferBase(BaseModel):
+    store_id: int = Field(..., description="ID of the store (FK)")
+    title: str = Field(..., description="Offer title or product name")
+    price: Optional[float] = Field(None, description="Offer price (if available)")
+    validity_text: Optional[str] = Field(None, description="Promo description")
+    image_url: Optional[str] = Field(None, description="Image URL")
 
-    store_slug: str = Field(..., min_length=2, max_length=32, pattern=r'^[a-z0-9_-]+$')
-    title: str
-    current_price: Decimal = Field(..., gt=Decimal('0'))
-    currency: Literal['MXN', 'USD'] = 'MXN'
-    url: HttpUrl
-    scraped_at: datetime
+# 🔹 2. Create schema – used for data validation when creating a new record
+class OfferCreate(OfferBase):
+    pass  # inherits all fields from OfferBase
 
-    # ---- store_slug: trim, lowercase, slug pattern ----
-    @field_validator("store_slug", mode="before")
-    @classmethod
-    def _strip_lower_slug(cls, v):
-        return v.strip().lower() if isinstance(v, str) else v
+# 🔹 3. Update schema – used for partial updates (fields are optional)
+class OfferUpdate(BaseModel):
+    title: Optional[str] = None
+    price: Optional[float] = None
+    validity_text: Optional[str] = None
+    image_url: Optional[str] = None
 
-    # ---- title: trim, not empty ----
-    @field_validator("title", mode="before")
-    @classmethod
-    def _strip_title(cls, v):
-        return v.strip() if isinstance(v, str) else v
+# 🔹 4. Read schema – defines what the API returns to the client
+class OfferRead(OfferBase):
+    id: int
 
-    @field_validator("title")
-    @classmethod
-    def _title_not_empty(cls, v):
-        if not v:
-            raise ValueError("title must not be empty")
-        return v
-
-    # ---- price: accept "1,234.56", "$99.90", numbers ----
-    @field_validator("current_price", mode="before")
-    @classmethod
-    def _parse_price(cls, v):
-        if isinstance(v, str):
-            cleaned = re.sub(r"[^\d.\-]", "", v)  # drop currency symbols/commas/spaces
-            v = cleaned
-        d = Decimal(str(v))
-        if d <= 0:
-            raise ValueError("current_price must be > 0")
-        return d.quantize(Decimal("0.01"))
-
-    # ---- currency: uppercase + restrict via Literal ----
-    @field_validator("currency", mode="before")
-    @classmethod
-    def _upper_currency(cls, v):
-        return v.upper() if isinstance(v, str) else v
-
-    # ---- scraped_at: accept ISO strings (with or without 'Z') ----
-    @field_validator("scraped_at", mode="before")
-    @classmethod
-    def _parse_scraped_at(cls, v):
-        if isinstance(v, str):
-            return datetime.fromisoformat(v.replace("Z", "+00:00"))
-        return v
-
-    # ---- ensure scraped_at is timezone-aware (default UTC) ----
-    @model_validator(mode="after")
-    def _ensure_tz(self):
-        if self.scraped_at.tzinfo is None:
-            object.__setattr__(self, "scraped_at", self.scraped_at.replace(tzinfo=timezone.utc))
-        return self
+    class Config:
+        from_attributes = True  # allows automatic conversion from SQLAlchemy models

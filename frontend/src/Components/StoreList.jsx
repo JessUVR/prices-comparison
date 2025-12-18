@@ -1,35 +1,39 @@
+// StoreList.jsx
 import React from "react";
 import oxxoLogo from "../assets/logos/oxxo.png";
 import sorianaLogo from "../assets/logos/soriana.png";
-import sevenEleven from "../assets/logos/sevenEleven.png";
+import sevenElevenLogo from "../assets/logos/sevenEleven.png";
 
-const stores = [
-  { name: "OXXO", logo: oxxoLogo },
-  { name: "Soriana", logo: sorianaLogo },
-  { name: "7-Eleven", logo: sevenEleven },
+const STORES = [
+  { id: 1, slug: "oxxo", name: "OXXO", comingSoon: false },
+  { id: 2, slug: "soriana", name: "Soriana", comingSoon: true },
+  { id: 3, slug: "7eleven", name: "7-Eleven", comingSoon: true },
+  { id: 4, slug: "merco", name: "Merco", comingSoon: false },
 ];
 
-function StoreList() {
+function StoreList({ selectedStore, onSelectStore }) {
   return (
-    <div className="pt-20 py-6 text-center bg-sky-100">
-      <h2 className="text-xl font-semibold text-gray-800 text-center mt-10 mb-2">
-        CERVEZAS DISPONIBLES 🍻
-      </h2>
+    <div className="store-list">
+      {STORES.map((store) => {
+        const isActive = selectedStore?.slug === store.slug;
 
-      <div className="bg-white rounded-xl shadow-sm p-4 max-w-3xl mx-auto flex flex-wrap justify-center gap-6">
-        {stores.map((store, index) => (
-          <div
-            key={index}
-            className="w-20 h-20 flex items-center justify-center"
+        return (
+          <button
+            key={store.id}
+            onClick={() => {
+              if (isActive) return; // ⛔ avoids reloading the same store
+              onSelectStore(store);
+
+              // 🔄 Reset scroll to top
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`store-item ${isActive ? "store-item--active" : ""}`}
           >
-            <img
-              src={store.logo}
-              alt={store.name}
-              className="w-full h-full object-contain"
-            />
-          </div>
-        ))}
-      </div>
+            {store.name}
+            {store.comingSoon && " (coming soon)"}
+          </button>
+        );
+      })}
     </div>
   );
 }
