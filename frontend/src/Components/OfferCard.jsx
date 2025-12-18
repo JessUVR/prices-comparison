@@ -1,10 +1,13 @@
-// OfferCard.jsx
+// Components/OfferCard.jsx
 import React from "react";
 
-function OfferCard({ offer }) {
+function OfferCard({ offer, onOpenDetails }) {
   return (
-    <div
+    <button
+      type="button"
+      onClick={() => onOpenDetails?.(offer)}
       className="
+        text-left w-full
         bg-slate-800 
         rounded-2xl 
         p-4 
@@ -18,7 +21,7 @@ function OfferCard({ offer }) {
       <div
         className="
           w-full
-          h-52              /* uniform frame size */
+          h-52
           bg-white
           rounded-xl
           mb-4
@@ -28,11 +31,15 @@ function OfferCard({ offer }) {
           overflow-hidden
         "
       >
-        <img
-          src={offer.image_url}
-          alt={offer.title}
-          className="max-h-full max-w-full object-contain"
-        />
+        {offer.image_url ? (
+          <img
+            src={offer.image_url}
+            alt={offer.title}
+            className="max-h-full max-w-full object-contain"
+          />
+        ) : (
+          <span className="text-slate-600 text-sm">No image</span>
+        )}
       </div>
 
       {/* Title */}
@@ -41,8 +48,15 @@ function OfferCard({ offer }) {
       </h3>
 
       {/* Price */}
-      <p className="text-cyan-400 font-bold text-lg">${offer.price}.00</p>
-    </div>
+      <p className="text-cyan-400 font-bold">
+        {typeof offer.price === "number"
+          ? `$${offer.price.toFixed(2)}`
+          : `$${offer.price}`}
+      </p>
+
+      {/* Hint */}
+      <p className="text-slate-400 text-xs mt-2">Click para ver detalles</p>
+    </button>
   );
 }
 

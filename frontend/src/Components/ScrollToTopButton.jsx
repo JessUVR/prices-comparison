@@ -6,14 +6,14 @@ export default function ScrollToTopButton() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // si estamos auto-scrolleando, ignoramos para no parpadear o re-montar raro
+      // if we are auto-scrolling, ignore to avoid flickering or weird remounting
       if (!isScrollingRef.current) {
         setVisible(window.scrollY > 200);
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // estado inicial
+    handleScroll(); // initial state
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -22,7 +22,7 @@ export default function ScrollToTopButton() {
     event.preventDefault();
     event.stopPropagation();
 
-    if (isScrollingRef.current) return; // evitar doble ejecución
+    if (isScrollingRef.current) return; // avoid double scrolls
 
     isScrollingRef.current = true;
 
@@ -31,19 +31,19 @@ export default function ScrollToTopButton() {
       behavior: "smooth",
     });
 
-    // después de un ratito volvemos a permitir otro scroll
+    // after a short delay we allow scrolling again
     setTimeout(() => {
       isScrollingRef.current = false;
       setVisible(false); // lo escondemos al terminar
     }, 500);
   };
 
-  if (!visible) return null; // 👈 visibilidad condicional como querías
+  if (!visible) return null; // conditional visibility
 
   return (
     <button
       type="button"
-      onPointerDown={scrollToTop} // 👈 más confiable que solo onClick en móvil
+      onPointerDown={scrollToTop}
       className="
         fixed bottom-5 right-5 z-50
         flex items-center justify-center
