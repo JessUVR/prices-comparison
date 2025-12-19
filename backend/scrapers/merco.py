@@ -11,9 +11,7 @@ from bs4 import BeautifulSoup
 from .scraped_offer import ScrapedOffer
 
 
-# --------------------------------------------------------
-# Config
-# --------------------------------------------------------
+# CONFIG
 
 BASE_URL = "https://adomicilio.merco.mx"
 CATEGORY_URL = (
@@ -21,9 +19,7 @@ CATEGORY_URL = (
 )
 
 
-# --------------------------------------------------------
-# HTML + NEXT helpers
-# --------------------------------------------------------
+# HTML + NEXT HELPERS
 
 def fetch_html(url: str) -> str:
     resp = requests.get(
@@ -81,9 +77,7 @@ def find_catalog_search_key(apollo: Dict[str, Any]) -> str:
     raise RuntimeError("No catalogSearch() key found in apolloState")
 
 
-# --------------------------------------------------------
 # PRODUCT -> ScrapedOffer
-# --------------------------------------------------------
 
 def product_to_scraped_offer(prod: Dict[str, Any]) -> ScrapedOffer:
     """Extrae name, photo, price, url."""
@@ -128,9 +122,7 @@ def product_to_scraped_offer(prod: Dict[str, Any]) -> ScrapedOffer:
     )
 
 
-# --------------------------------------------------------
 # MAIN SCRAPER
-# --------------------------------------------------------
 
 def scrape_offers() -> List[ScrapedOffer]:
     print("[MERCO] Fetching category page...")
@@ -168,9 +160,7 @@ def scrape_offers() -> List[ScrapedOffer]:
     return offers
 
 
-# --------------------------------------------------------
 # MAIN GUARD
-# --------------------------------------------------------
 
 if __name__ == "__main__":
     import traceback

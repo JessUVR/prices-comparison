@@ -1,4 +1,3 @@
-# backend/app/infra/db/init_db.py
 from app.infra.db.database import engine
 from app.domain.models import Base
 

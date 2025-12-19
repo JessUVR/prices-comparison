@@ -1,9 +1,8 @@
-# app/tests/test_helpers.py
 import sys
 from pathlib import Path
 
 # Add backend root to sys.path so "app.*" imports work when running as a script
-BACKEND_ROOT = Path(__file__).resolve().parents[2]  # .../backend
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.infra.utils.helpers import clean_text, format_price

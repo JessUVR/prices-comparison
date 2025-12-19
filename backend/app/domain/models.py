@@ -4,7 +4,7 @@ from datetime import datetime
 from app.infra.db.database import Base
 
 
-# --- Store model ---
+# STORE MODEL
 class Store(Base):
     __tablename__ = "stores"
 
@@ -16,11 +16,11 @@ class Store(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # One store can have many offers
+    # One store for many offers
     offers = relationship("Offer", back_populates="store")
 
 
-# --- Offer model ---
+# OFFER MODEL
 class Offer(Base):
     __tablename__ = "offers"
 

@@ -11,9 +11,7 @@ from app.services.scrapers_runner import run_oxxo_scraper, run_merco_scraper
 router = APIRouter(prefix="/offers", tags=["offers"])
 
 
-# -------------------------
 # CRUD endpoints (manual)
-# -------------------------
 
 @router.post("/", response_model=OfferRead)
 def create_offer(offer: OfferCreate, db: Session = Depends(get_db)):
@@ -63,13 +61,7 @@ def delete_all_offers_endpoint(db: Session = Depends(get_db)):
     return {"detail": f"Deleted {deleted} offers"}
 
 
-# -------------------------
 # Store-based scraper endpoint
-# -------------------------
-
-# -------------------------
-# Store-based scraper endpoint
-# -------------------------
 
 @router.get("/store/{store_slug}", response_model=List[OfferRead])
 def get_offers_by_store(store_slug: str, db: Session = Depends(get_db)):
@@ -82,20 +74,20 @@ def get_offers_by_store(store_slug: str, db: Session = Depends(get_db)):
     """
     normalized_slug = store_slug.lower().strip()
 
-    # 1) Map slug -> store name + run scraper
+    # Map slug -> store name + run scraper
     if normalized_slug == "oxxo":
         store_name = "OXXO"
-        run_oxxo_scraper(db=db)     # refresca ofertas de OXXO
+        run_oxxo_scraper(db=db)     
     elif normalized_slug == "merco":
         store_name = "Merco"
-        run_merco_scraper(db=db)    # refresca ofertas de Merco
+        run_merco_scraper(db=db)   
     else:
         raise HTTPException(
             status_code=404,
             detail=f"Store '{store_slug}' is not supported yet",
         )
 
-    # 2) Find the store in the DB
+    # Find the store in the DB
     store = (
         db.query(models.Store)
         .filter(models.Store.name == store_name)
@@ -107,7 +99,7 @@ def get_offers_by_store(store_slug: str, db: Session = Depends(get_db)):
             detail=f"Store '{store_name}' not found in database",
         )
 
-    # 3) Return ONLY its offers
+    # Return ONLY its offers
     offers = crud.get_offers_by_store(db=db, store_id=store.id)
     return offers
 
