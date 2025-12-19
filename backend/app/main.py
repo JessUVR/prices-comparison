@@ -1,4 +1,3 @@
-# backend/app/main.py
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi import FastAPI
@@ -11,12 +10,12 @@ app.include_router(offers_router)
 origins = [
     "http://localhost:5173",  # Vite
     "http://localhost:3000",  # React CRA
-    "http://192.168.1.142:5173",   # Vite Network on your machine
+    "http://192.168.1.142:5173",   # Vite Network on my machine
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Use ["*"] to allow all origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

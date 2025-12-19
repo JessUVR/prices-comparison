@@ -1,5 +1,3 @@
-# app/services/scrapers_runner.py
-
 from sqlalchemy.orm import Session
 
 from scrapers.oxxo import scrape_offers as scrape_offers_oxxo

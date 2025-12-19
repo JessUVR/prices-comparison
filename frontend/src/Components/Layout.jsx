@@ -24,7 +24,7 @@ function Layout() {
 
   return (
     <div className="h-screen flex flex-col bg-sky-100 overflow-hidden">
-      {/* Header + logos */}
+      {/* Header */}
       <StoreList onSelectStore={handleSelectStore} />
 
       {/* Title OFERTAS – X */}

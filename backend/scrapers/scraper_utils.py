@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from pydantic import ValidationError
 
 
-# --- HTTP ---
+# HTTP
 DEFAULT_HEADERS = {
     "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"),
@@ -25,7 +25,7 @@ def fetch_html(url: str, headers: Optional[Dict] = None, timeout: int = 20) -> s
     except requests.RequestException:
         return ""
 
-# --- Text / Heuristics ---
+# TEXT / HEURISTICS
 def text_of(el) -> str:
     """Normalized text from a BeautifulSoup node (collapsed whitespace)."""
     return "" if el is None else " ".join(el.get_text(" ", strip=True).split())
@@ -68,7 +68,7 @@ def normalize_currency(s: str, default: str = "MXN") -> str:
     if "$" in u: return default
     return default
 
-# --- JSON-LD (PDP) ---
+# JSON-LD (PDP)
 def extract_product_from_pdp(html: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
     Extracts (name, price, currency) from JSON-LD @type Product in a PDP.
@@ -104,7 +104,7 @@ def extract_product_from_pdp(html: str) -> Tuple[Optional[str], Optional[str], O
                 stack.extend(node)
     return None, None, None
 
-# --- Misc ---
+# MISC UTILITIES
 def now_utc_iso() -> str:
     """ISO8601 timestamp in UTC with Z suffix (no microseconds)."""
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -149,7 +149,7 @@ def validate_with_offer(items: List[Dict], store_slug: str) -> Tuple[List[Dict],
             "store_slug": store_slug,
         }
 
-        # 👇 PRESERVE EXTRA FIELDS IF THEY EXIST
+        # PRESERVE EXTRA FIELDS IF THEY EXIST
         if "image_url" in it:
             payload["image_url"] = it.get("image_url")
 
